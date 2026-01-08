@@ -2,9 +2,51 @@ local icons = require("icons")
 local colors = require("colors")
 local settings = require("settings")
 
--- Execute the event provider binary which provides the event "network_update"
--- for the network interface "en0", which is fired every 2.0 seconds.
-sbar.exec("killall network_load >/dev/null; $CONFIG_DIR/helpers/event_providers/network_load/bin/network_load en0 network_update 2.0")
+-- Active interface detection and dynamic event provider start
+local active_if = "en0"
+local provider_if = nil
+local interface_type = "wifi" -- default to wifi
+
+local function get_network_icons()
+  return interface_type == "wifi" and icons.wifi or icons.ethernet
+end
+
+local function detect_interface_type(iface, callback)
+  sbar.exec("networksetup -listallhardwareports | grep -A1 '" .. iface .. "' | grep 'Hardware Port:' | head -1", function(result)
+    local port_info = string.gsub(result or "", "\n", "")
+    local is_wifi = string.find(string.lower(port_info), "wi%-fi") ~= nil
+    callback(is_wifi and "wifi" or "ethernet")
+  end)
+end
+
+local function detect_active_interface(callback)
+  sbar.exec("route -n get default | awk '/interface: /{print $2}'", function(result)
+    local iface = string.gsub(result or "", "\n", "")
+    if iface == nil or iface == "" then
+      iface = active_if
+    end
+    detect_interface_type(iface, function(itype)
+      interface_type = itype
+      callback(iface)
+    end)
+  end)
+end
+
+local function start_network_provider(iface)
+  if provider_if == iface then return end
+  provider_if = iface
+  sbar.exec("killall network_load >/dev/null; $CONFIG_DIR/helpers/event_providers/network_load/bin/network_load " .. iface .. " network_update 2.0")
+end
+
+-- Forward declaration - will be defined after widgets are created
+local update_network_icons
+
+-- Initialize provider for the current default route interface
+detect_active_interface(function(iface)
+  active_if = iface
+  start_network_provider(active_if)
+  if update_network_icons then update_network_icons() end -- Update icons after detecting interface type
+end)
 
 local popup_width = 250
 
@@ -18,7 +60,7 @@ local wifi_up = sbar.add("item", "widgets.wifi1", {
       style = settings.font.style_map["Bold"],
       size = 9.0,
     },
-    string = icons.wifi.upload,
+    string = icons.wifi.upload, -- Will be updated later
   },
   label = {
     font = {
@@ -41,7 +83,7 @@ local wifi_down = sbar.add("item", "widgets.wifi2", {
       style = settings.font.style_map["Bold"],
       size = 9.0,
     },
-    string = icons.wifi.download,
+    string = icons.wifi.download, -- Will be updated later
   },
   label = {
     font = {
@@ -76,7 +118,7 @@ local ssid = sbar.add("item", {
     font = {
       style = settings.font.style_map["Bold"]
     },
-    string = icons.wifi.router,
+    string = icons.wifi.router, -- Will be updated later
   },
   width = popup_width,
   align = "center",
@@ -173,15 +215,29 @@ wifi_up:subscribe("network_update", function(env)
   })
 end)
 
+update_network_icons = function()
+  wifi_up:set({ icon = { string = get_network_icons().upload } })
+  wifi_down:set({ icon = { string = get_network_icons().download } })
+  ssid:set({ icon = { string = get_network_icons().router } })
+end
+
 wifi:subscribe({"wifi_change", "system_woke"}, function(env)
-  sbar.exec("ipconfig getifaddr en0", function(ip)
-    local connected = not (ip == "")
-    wifi:set({
-      icon = {
-        string = connected and icons.wifi.connected or icons.wifi.disconnected,
-        color = connected and colors.white or colors.red,
-      },
-    })
+  detect_active_interface(function(iface)
+    local previous_if = active_if
+    active_if = iface
+    if previous_if ~= active_if then
+      start_network_provider(active_if)
+      update_network_icons() -- Update icons when interface changes
+    end
+    sbar.exec("ipconfig getifaddr " .. active_if, function(ip)
+      local connected = not (ip == "" or ip == nil)
+      wifi:set({
+        icon = {
+          string = connected and get_network_icons().connected or get_network_icons().disconnected,
+          color = connected and colors.white or colors.red,
+        },
+      })
+    end)
   end)
 end)
 
@@ -196,17 +252,29 @@ local function toggle_details()
     sbar.exec("networksetup -getcomputername", function(result)
       hostname:set({ label = result })
     end)
-    sbar.exec("ipconfig getifaddr en0", function(result)
+    sbar.exec("ipconfig getifaddr " .. active_if, function(result)
       ip:set({ label = result })
     end)
-    sbar.exec("ipconfig getsummary en0 | awk -F ' SSID : '  '/ SSID : / {print $2}'", function(result)
-      ssid:set({ label = result })
+    sbar.exec("ipconfig getsummary " .. active_if .. " | awk -F ' SSID : '  '/ SSID : / {print $2}'", function(result)
+      local label = string.gsub(result or "", "\n", "")
+      if label == nil or label == "" then
+        -- Fall back to interface type for non-Wi-Fi (e.g., Ethernet)
+        sbar.exec("ipconfig getsummary " .. active_if .. " | awk -F 'InterfaceType : ' '/InterfaceType : / {print $2}'", function(t)
+          local tlabel = string.gsub(t or "", "\n", "")
+          if tlabel == nil or tlabel == "" then tlabel = "Network" end
+          ssid:set({ label = tlabel })
+        end)
+      else
+        ssid:set({ label = label })
+      end
     end)
-    sbar.exec("networksetup -getinfo Wi-Fi | awk -F 'Subnet mask: ' '/^Subnet mask: / {print $2}'", function(result)
-      mask:set({ label = result })
+    sbar.exec("ipconfig getoption " .. active_if .. " subnet_mask", function(result)
+      local label = string.gsub(result or "", "\n", "")
+      mask:set({ label = label })
     end)
-    sbar.exec("networksetup -getinfo Wi-Fi | awk -F 'Router: ' '/^Router: / {print $2}'", function(result)
-      router:set({ label = result })
+    sbar.exec("ipconfig getoption " .. active_if .. " router", function(result)
+      local label = string.gsub(result or "", "\n", "")
+      router:set({ label = label })
     end)
   else
     hide_details()
