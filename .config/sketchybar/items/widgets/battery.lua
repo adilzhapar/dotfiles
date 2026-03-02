@@ -7,10 +7,14 @@ local battery = sbar.add("item", "widgets.battery", {
   icon = {
     font = {
       style = settings.font.style_map["Regular"],
-      size = 19.0,
-    }
+      size = 16.0,
+    },
+    padding_right = 6,
   },
-  label = { font = { family = settings.font.numbers } },
+  label = {
+    font = { family = settings.font.numbers },
+    padding_left = 4,
+  },
   update_freq = 180,
   popup = { align = "center" }
 })
@@ -91,9 +95,8 @@ battery:subscribe("mouse.clicked", function(env)
 end)
 
 sbar.add("bracket", "widgets.battery.bracket", { battery.name }, {
-  background = { color = colors.bg1 }
+  background = { color = colors.bg1, corner_radius = 7, padding_left = 4, padding_right = 4 },
 })
-
 sbar.add("item", "widgets.battery.padding", {
   position = "right",
   width = settings.group_paddings

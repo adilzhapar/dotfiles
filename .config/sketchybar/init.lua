@@ -1,6 +1,9 @@
 -- Require the sketchybar module
 sbar = require("sketchybar")
 
+-- Unload macOS volume OSD overlay
+os.execute("launchctl unload -F /System/Library/LaunchAgents/com.apple.OSDUIHelper.plist 2>/dev/null &")
+
 -- Set the bar name, if you are using another bar instance than sketchybar
 -- sbar.set_bar_name("bottom_bar")
 

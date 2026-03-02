@@ -6,20 +6,19 @@ local popup_width = 250
 
 local volume_percent = sbar.add("item", "widgets.volume1", {
   position = "right",
+  update_freq = 10,
   icon = { drawing = false },
   label = {
     string = "??%",
-    padding_left = -1,
+    padding_left = 4,
     font = { family = settings.font.numbers }
   },
 })
 
 local volume_icon = sbar.add("item", "widgets.volume2", {
   position = "right",
-  padding_right = -1,
   icon = {
     string = icons.volume._100,
-    width = 0,
     align = "left",
     color = colors.grey,
     font = {
@@ -27,21 +26,14 @@ local volume_icon = sbar.add("item", "widgets.volume2", {
       size = 14.0,
     },
   },
-  label = {
-    width = 25,
-    align = "left",
-    font = {
-      style = settings.font.style_map["Regular"],
-      size = 14.0,
-    },
-  },
+  label = { drawing = false },
 })
 
 local volume_bracket = sbar.add("bracket", "widgets.volume.bracket", {
   volume_icon.name,
   volume_percent.name
 }, {
-  background = { color = colors.bg1 },
+  background = { color = colors.bg1, corner_radius = 7, padding_left = 4, padding_right = 4 },
   popup = { align = "center" }
 })
 
@@ -56,7 +48,7 @@ local volume_slider = sbar.add("slider", popup_width, {
     highlight_color = colors.blue,
     background = {
       height = 6,
-      corner_radius = 3,
+      corner_radius = 7,
       color = colors.bg2,
     },
     knob= {
@@ -68,7 +60,7 @@ local volume_slider = sbar.add("slider", popup_width, {
   click_script = 'osascript -e "set volume output volume $PERCENTAGE"'
 })
 
-volume_percent:subscribe("volume_change", function(env)
+local function update_volume(env)
   local volume = tonumber(env.INFO)
   local icon = icons.volume._0
   if volume > 60 then
@@ -86,9 +78,19 @@ volume_percent:subscribe("volume_change", function(env)
     lead = "0"
   end
 
-  volume_icon:set({ label = icon })
+  volume_icon:set({ icon = { string = icon } })
   volume_percent:set({ label = lead .. volume .. "%" })
   volume_slider:set({ slider = { percentage = volume } })
+end
+
+volume_percent:subscribe("volume_change", update_volume)
+volume_percent:subscribe({"routine", "system_woke"}, function()
+  sbar.exec("osascript -e 'output volume of (get volume settings)'", function(result)
+    if result and result ~= "" then
+      local vol = tonumber((result:gsub("%s+", ""):match("%d+")) or "0") or 0
+      update_volume({ INFO = vol })
+    end
+  end)
 end)
 
 local function volume_collapse_details()

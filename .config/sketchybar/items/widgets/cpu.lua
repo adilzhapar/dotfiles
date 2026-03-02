@@ -4,18 +4,22 @@ local settings = require("settings")
 
 -- Execute the event provider binary which provides the event "cpu_update" for
 -- the cpu load data, which is fired every 2.0 seconds.
-sbar.exec("killall cpu_load >/dev/null; $CONFIG_DIR/helpers/event_providers/cpu_load/bin/cpu_load cpu_update 2.0")
+local config_dir = os.getenv("CONFIG_DIR") or (os.getenv("HOME") .. "/.config/sketchybar")
+sbar.exec("killall cpu_load 2>/dev/null; " .. config_dir .. "/helpers/event_providers/cpu_load/bin/cpu_load cpu_update 2.0 &")
 
-local cpu = sbar.add("graph", "widgets.cpu" , 42, {
+local cpu = sbar.add("graph", "widgets.cpu" , 38, {
   position = "right",
   graph = { color = colors.blue },
   background = {
-    height = 22,
+    height = 24,
     color = { alpha = 0 },
     border_color = { alpha = 0 },
     drawing = true,
   },
-  icon = { string = icons.cpu },
+  icon = {
+    string = icons.cpu,
+    padding_right = 6,
+  },
   label = {
     string = "cpu ??%",
     font = {
@@ -24,17 +28,20 @@ local cpu = sbar.add("graph", "widgets.cpu" , 42, {
       size = 9.0,
     },
     align = "right",
+    padding_left = 4,
     padding_right = 0,
     width = 0,
     y_offset = 4
   },
-  padding_right = settings.paddings + 6
+  padding_right = settings.paddings + 4
 })
 
 cpu:subscribe("cpu_update", function(env)
   -- Also available: env.user_load, env.sys_load
-  local load = tonumber(env.total_load)
-  cpu:push({ load / 100. })
+  local load = tonumber(env.total_load) or 0
+  -- Clamp to 0-1 range to prevent graph overflow (values > 1 can occur on multi-core)
+  local graph_value = math.max(0, math.min(0.9, load / 100))
+  cpu:push({ graph_value })
 
   local color = colors.blue
   if load > 30 then
@@ -57,12 +64,9 @@ cpu:subscribe("mouse.clicked", function(env)
   sbar.exec("open -a 'Activity Monitor'")
 end)
 
--- Background around the cpu item
 sbar.add("bracket", "widgets.cpu.bracket", { cpu.name }, {
-  background = { color = colors.bg1 }
+  background = { color = colors.bg1, corner_radius = 7, padding_left = 4, padding_right = 4 },
 })
-
--- Background around the cpu item
 sbar.add("item", "widgets.cpu.padding", {
   position = "right",
   width = settings.group_paddings

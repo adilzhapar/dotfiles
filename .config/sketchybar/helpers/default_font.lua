@@ -1,13 +1,12 @@
 return {
-  text = "SF Pro", -- Used for text
-  numbers = "SF Mono", -- Used for numbers
+  text = "JetBrainsMono Nerd Font",
+  numbers = "JetBrainsMono Nerd Font",
 
-  -- Unified font style map
   style_map = {
     ["Regular"] = "Regular",
-    ["Semibold"] = "Semibold",
-    ["Bold"] = "Bold",
-    ["Heavy"] = "Heavy",
-    ["Black"] = "Black",
-  }
+    ["Semibold"] = "Medium",
+    ["Bold"] = "SemiBold",
+    ["Heavy"] = "Bold",
+    ["Black"] = "ExtraBold",
+  },
 }

@@ -35,7 +35,8 @@ end
 local function start_network_provider(iface)
   if provider_if == iface then return end
   provider_if = iface
-  sbar.exec("killall network_load >/dev/null; $CONFIG_DIR/helpers/event_providers/network_load/bin/network_load " .. iface .. " network_update 2.0")
+  local config_dir = os.getenv("CONFIG_DIR") or (os.getenv("HOME") .. "/.config/sketchybar")
+  sbar.exec("killall network_load 2>/dev/null; " .. config_dir .. "/helpers/event_providers/network_load/bin/network_load " .. iface .. " network_update 2.0 &")
 end
 
 -- Forward declaration - will be defined after widgets are created
@@ -52,10 +53,9 @@ local popup_width = 250
 
 local wifi_up = sbar.add("item", "widgets.wifi1", {
   position = "right",
-  padding_left = -5,
+  padding_left = 4,
   width = 0,
   icon = {
-    padding_right = 0,
     font = {
       style = settings.font.style_map["Bold"],
       size = 9.0,
@@ -76,9 +76,8 @@ local wifi_up = sbar.add("item", "widgets.wifi1", {
 
 local wifi_down = sbar.add("item", "widgets.wifi2", {
   position = "right",
-  padding_left = -5,
+  padding_left = 4,
   icon = {
-    padding_right = 0,
     font = {
       style = settings.font.style_map["Bold"],
       size = 9.0,
@@ -102,13 +101,12 @@ local wifi = sbar.add("item", "widgets.wifi.padding", {
   label = { drawing = false },
 })
 
--- Background around the item
 local wifi_bracket = sbar.add("bracket", "widgets.wifi.bracket", {
   wifi.name,
   wifi_up.name,
   wifi_down.name
 }, {
-  background = { color = colors.bg1 },
+  background = { color = colors.bg1, corner_radius = 7, padding_left = 4, padding_right = 4 },
   popup = { align = "center", height = 30 }
 })
 

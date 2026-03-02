@@ -1,52 +1,40 @@
 local settings = require("settings")
 local colors = require("colors")
 
--- Equivalent to the --default domain
+local paddings = settings.paddings
+
 sbar.default({
   updates = "when_shown",
   icon = {
-    font = {
-      family = settings.font.text,
-      style = settings.font.style_map["Bold"],
-      size = 14.0
-    },
-    color = colors.white,
-    padding_left = settings.paddings,
-    padding_right = settings.paddings,
-    background = { image = { corner_radius = 9 } },
+    font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 14 },
+    color = colors.icon_color,
+    highlight_color = colors.highlight,
+    padding_left = 0,
+    padding_right = 0,
+    background = { corner_radius = 7 },
   },
   label = {
-    font = {
-      family = settings.font.text,
-      style = settings.font.style_map["Semibold"],
-      size = 13.0
-    },
-    color = colors.white,
-    padding_left = settings.paddings,
-    padding_right = settings.paddings,
+    font = { family = settings.font.text, style = settings.font.style_map["Semibold"], size = 13 },
+    color = colors.label_color,
+    highlight_color = colors.highlight,
+    padding_left = paddings,
+    padding_right = paddings,
   },
   background = {
-    height = 28,
-    corner_radius = 9,
-    border_width = 2,
-    border_color = colors.bg2,
-    image = {
-      corner_radius = 9,
-      border_color = colors.grey,
-      border_width = 1
-    }
+    height = 24,
+    corner_radius = 7,
+    padding_left = paddings,
+    padding_right = paddings,
   },
   popup = {
     background = {
-      border_width = 2,
-      corner_radius = 9,
-      border_color = colors.popup.border,
       color = colors.popup.bg,
-      shadow = { drawing = true },
+      corner_radius = 7,
+      shadow = { drawing = true, color = colors.bar.bg, angle = 90, distance = 64 },
     },
-    blur_radius = 50,
+    blur_radius = 32,
   },
-  padding_left = 5,
-  padding_right = 5,
+  padding_left = 4,
+  padding_right = 4,
   scroll_texts = true,
 })

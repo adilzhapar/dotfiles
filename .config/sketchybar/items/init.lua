@@ -1,7 +1,9 @@
+-- Left side: Apple first, then spaces
 require("items.apple")
 require("items.menus")
 require("items.spaces")
-require("items.front_app")
-require("items.calendar")
+
+-- Right side: datetime, widgets, media
+require("items.datetime")
 require("items.widgets")
 require("items.media")

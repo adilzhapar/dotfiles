@@ -6,6 +6,7 @@ local settings = require("settings")
 sbar.add("item", { width = 5 })
 
 local apple = sbar.add("item", {
+  position = "left",
   icon = {
     font = { size = 16.0 },
     string = icons.apple,
