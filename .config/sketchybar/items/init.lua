@@ -1,4 +1,4 @@
--- Left side: Apple first, then spaces
+-- Left side: Apple + yabai first, then spaces
 require("items.apple")
 require("items.menus")
 require("items.spaces")

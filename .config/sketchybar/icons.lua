@@ -61,6 +61,8 @@ local sf_symbols = {
     stack = "􀏭",
     float = "􀢌",
     fullscreen = "􀂓",
+    fullscreen_zoom = "􀂓",
+    parent_zoom = "􀧋",
     split_vertical = "􀘜",
     split_horizontal = "􀧋",
   },
@@ -80,7 +82,7 @@ local nerdfont = {
   ethernet = { upload = "􀄨", download = "􀄩", connected = "􀌗", disconnected = "􀟜", router = "􁓤" },
   media = { back = "􀊊", forward = "􀊌", play_pause = "􀊈" },
   dnd_on = "􀆺", dnd_off = "􀆹", disk = "􀋊", date = "􀀁", calendar = "􀃭", clock = "􀐫",
-  yabai = { grid = "􀧍", stack = "􀏭", float = "􀢌", fullscreen = "􀂓", split_vertical = "􀘜", split_horizontal = "􀧋" },
+  yabai = { grid = "􀧍", stack = "􀏭", float = "􀢌", fullscreen = "􀂓", fullscreen_zoom = "􀂓", parent_zoom = "􀧋", split_vertical = "􀘜", split_horizontal = "􀧋" },
 }
 
 if settings.icons == "NerdFont" then
