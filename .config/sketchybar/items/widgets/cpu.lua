@@ -18,20 +18,20 @@ local cpu = sbar.add("graph", "widgets.cpu" , 38, {
   },
   icon = {
     string = icons.cpu,
-    padding_right = 6,
+    padding_right = 32,
   },
   label = {
     string = "cpu ??%",
     font = {
       family = settings.font.numbers,
       style = settings.font.style_map["Bold"],
-      size = 9.0,
+      size = 14.0,
     },
     align = "right",
-    padding_left = 4,
-    padding_right = 0,
+    padding_left = 6,
+    padding_right = 6,
     width = 0,
-    y_offset = 4
+    -- y_offset = 4
   },
   padding_right = settings.paddings + 4
 })

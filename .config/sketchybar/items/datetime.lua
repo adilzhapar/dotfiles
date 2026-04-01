@@ -7,7 +7,7 @@ local date = sbar.add("item", "date", {
   position = "right",
   icon = { drawing = false },
   label = {
-    font = { family = settings.font.text, style = settings.font.style_map["Semibold"], size = 11 },
+    font = { family = settings.font.text, style = settings.font.style_map["Semibold"], size = 14 },
     padding_left = 4,
     padding_right = 4,
     color = colors.label_color,
@@ -28,7 +28,7 @@ local clock = sbar.add("item", "clock", {
   position = "right",
   icon = { drawing = false },
   label = {
-    font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 12 },
+    font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 14 },
     padding_left = 4,
     padding_right = 4,
     color = colors.label_color,
@@ -87,6 +87,11 @@ end)
 -- Bracket around calendar to give it space and match other widgets
 sbar.add("bracket", "calendar.bracket", { "date", "clock" }, {
   background = { color = colors.bg1, corner_radius = 7, padding_left = 4, padding_right = 10 },
+})
+
+sbar.add("item", "widgets.datetime.padding", {
+  position = "right",
+  width = settings.group_paddings
 })
 
 -- Initial update

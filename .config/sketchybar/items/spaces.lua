@@ -129,6 +129,8 @@ local spaces_indicator = sbar.add("item", {
   }
 })
 
+local yabai_item = require("items.yabai")
+
 space_window_observer:subscribe("space_windows_change", function(env)
   local icon_line = ""
   local no_app = true
