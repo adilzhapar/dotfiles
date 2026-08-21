@@ -54,7 +54,7 @@ local function update_date()
 end
 
 local function update_clock()
-  clock:set({ label = os.date("%I:%M %p") })
+  clock:set({ label = os.date("%H:%M") })
 end
 
 local function update_next_event()
