@@ -13,13 +13,13 @@ lalt - l    : yabai -m window --focus east || yabai -m display --focus east
 lalt - h    : yabai -m window --focus west  || yabai -m display --focus west
 
 # Float / Unfloat window: lalt - space
-lalt - space : yabai -m window --toggle float; sketchybar --trigger window_focus
+lalt - space : yabai -m window --toggle float
 
 # Make window zoom to fullscreen: shift + lalt - f
-shift + lalt - f : yabai -m window --toggle zoom-fullscreen; sketchybar --trigger window_focus
+shift + lalt - f : yabai -m window --toggle zoom-fullscreen
 
 # Make window zoom to parent node: lalt - f 
-lalt - f : yabai -m window --toggle zoom-parent; sketchybar --trigger window_focus
+lalt - f : yabai -m window --toggle zoom-parent
 
 ## Window Movement (shift + lalt - ...)
 # Moving windows in spaces: shift + lalt - {j, k, l, ö}
@@ -57,8 +57,8 @@ shift + ctrl - k    : yabai -m window north --stack $(yabai -m query --windows -
 shift + ctrl - l    : yabai -m window  east --stack $(yabai -m query --windows --window | jq -r '.id')
 
 # Stack Navigation: shift + ctrl - {n, p}
-shift + ctrl - n : yabai -m window --focus stack.next; sketchybar --trigger window_focus
-shift + ctrl - p : yabai -m window --focus stack.prev; sketchybar --trigger window_focus
+shift + ctrl - n : yabai -m window --focus stack.next
+shift + ctrl - p : yabai -m window --focus stack.prev
 
 ## Resize (ctrl + lalt - ...)
 # Resize windows: ctrl + lalt - {j, k, l, ö}
@@ -88,9 +88,6 @@ lalt - v : yabai -m window --insert south; skhd -k "cmd - n"
 # Toggle sketchybar
 shift + lalt - space : sketchybar --bar hidden=toggle
 
-# Toggle bsp / stack / float layout for current space
-# layout.sh un-floats every floating window on the space first, otherwise the
-# layout switch is a no-op for them (floating windows are outside the tree).
-shift + ctrl - s : ~/.config/yabai/layout.sh stack
-shift + ctrl - b : ~/.config/yabai/layout.sh bsp
-shift + ctrl - f : ~/.config/yabai/layout.sh float
+# Toggle bsp / stack for current space
+shift + ctrl - s : yabai -m space --layout stack; sketchybar --trigger window_focus
+shift + ctrl - b : yabai -m space --layout bsp; sketchybar --trigger window_focus

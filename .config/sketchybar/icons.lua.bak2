@@ -82,8 +82,6 @@ local nerdfont = {
   ethernet = { upload = "􀄨", download = "􀄩", connected = "􀌗", disconnected = "􀟜", router = "􁓤" },
   media = { back = "􀊊", forward = "􀊌", play_pause = "􀊈" },
   dnd_on = "􀆺", dnd_off = "􀆹", disk = "􀋊", date = "􀀁", calendar = "􀃭", clock = "􀐫",
-  -- NOTE: intentionally identical to the sf_symbols table above; yabai mode
-  -- glyphs have no Nerd Font equivalent, so both variants use SF Symbols.
   yabai = { grid = "􀧍", stack = "􀏭", float = "􀢌", fullscreen = "􀂓", fullscreen_zoom = "􀂓", parent_zoom = "􀧋", split_vertical = "􀘜", split_horizontal = "􀧋" },
 }
 

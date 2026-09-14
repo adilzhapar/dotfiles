@@ -34,51 +34,73 @@ local function set_border_color(color_hex)
   sbar.exec("yabai -m config active_window_border_color " .. hex .. " 2>/dev/null &")
 end
 
+-- One shell round-trip -> one `set`.  The previous version issued a *second*
+-- nested sbar.exec for the stack branch while the other branches set the icon
+-- immediately; window_focused, front_app_switched and space_change all fire on a
+-- single Cmd-Tab, so callbacks interleaved and spliced two events' results
+-- together (observed: grid icon carrying a "[2/2]" stack label).
+--
+-- Emits "layout|winstate|index|count":
+--   layout   = the SPACE's layout (bsp|stack|float)   <- what ctrl+shift-{s,b,f} changes
+--   winstate = the focused WINDOW's state             <- what alt-space / alt-f changes
+-- These are two independent things; the old code only ever read the window, which
+-- is why switching the space layout could not move the icon.
+-- `count` counts only managed windows, and `index` falls back to 1: a lone managed
+-- window in a stack space reports stack-index 0, which the old `> 0` test sent
+-- down the else branch and rendered as "grid".
+local STATE_QUERY = [==[
+sp=$(yabai -m query --spaces --space 2>/dev/null)
+ws=$(yabai -m query --windows --space 2>/dev/null)
+[ -z "$sp" ] && exit 0
+[ -z "$ws" ] && ws='[]'
+jq -rn --argjson s "$sp" --argjson ws "$ws" '
+  ($s.type) as $layout
+  | ([$ws[] | select(.["is-floating"] == false)] | length) as $cnt
+  | ([$ws[] | select(.["has-focus"] == true)] | first) as $w
+  | (if $w == null then "none"
+     elif ($w["has-fullscreen-zoom"] // false) then "fullscreen"
+     elif ($w["has-parent-zoom"] // false) then "parent"
+     elif ($w["is-floating"] // false) then "float"
+     else "tiled" end) as $st
+  | (if $w == null then 1
+     elif (($w["stack-index"] // 0) > 0) then $w["stack-index"]
+     else 1 end) as $idx
+  | "\($layout)|\($st)|\($idx)|\($cnt)"'
+]==]
+
 local function update_window_state()
-  sbar.exec("yabai -m query --windows --window 2>/dev/null | jq -r 'if . == null then \"none\" elif .[\"stack-index\"] > 0 then \"stack|\" + (.[\"stack-index\"] | tostring) elif .[\"is-floating\"] == true then \"float\" elif .[\"has-fullscreen-zoom\"] == true then \"fullscreen\" elif .[\"has-parent-zoom\"] == true then \"parent\" else \"grid\" end'", function(result)
-    if not result or result == "" or result == "none" then return end
+  sbar.exec(STATE_QUERY, function(result)
+    if not result then return end
     result = result:gsub("^%s*(.-)%s*$", "%1")
+    if result == "" then return end
 
-    if result:match("^stack|") then
-      local current = tonumber(result:match("^stack|(%d+)"))
-      if current and current > 0 then
-        sbar.exec("yabai -m query --windows --window stack.last 2>/dev/null | jq -r '.[\"stack-index\"]'", function(last_result)
-          local last = tonumber(last_result) or current
-          yabai_item:set({
-            icon = { string = yabai.stack, color = colors.red },
-            label = { drawing = true, string = string.format("[%d/%d]", current, last) },
-          })
-          set_border_color(colors.red)
-        end)
-      end
-      return
-    end
+    local layout, state, idx, cnt = result:match("^([^|]*)|([^|]*)|([^|]*)|([^|]*)$")
+    if not layout or state == "none" then return end
 
-    if result == "float" then
-      yabai_item:set({
-        icon = { string = yabai.float, color = colors.maroon },
-        label = { drawing = false },
-      })
-      set_border_color(colors.maroon)
-    elseif result == "fullscreen" then
-      yabai_item:set({
-        icon = { string = yabai.fullscreen_zoom, color = colors.green },
-        label = { drawing = false },
-      })
-      set_border_color(colors.green)
-    elseif result == "parent" then
-      yabai_item:set({
-        icon = { string = yabai.parent_zoom, color = colors.blue },
-        label = { drawing = false },
-      })
-      set_border_color(colors.blue)
+    local icon, color, label
+
+    if state == "fullscreen" then
+      icon, color = yabai.fullscreen_zoom, colors.green
+    elseif state == "parent" then
+      icon, color = yabai.parent_zoom, colors.blue
+    elseif layout == "float" then
+      icon, color = yabai.float, colors.maroon
+    elseif state == "float" then
+      -- Space layout + a badge saying this particular window opted out of it.
+      icon = (layout == "stack" and yabai.stack or yabai.grid) .. " " .. yabai.float
+      color = colors.maroon
+    elseif layout == "stack" then
+      icon, color = yabai.stack, colors.red
+      label = string.format("[%s/%s]", idx, cnt)
     else
-      yabai_item:set({
-        icon = { string = yabai.grid, color = colors.orange },
-        label = { drawing = false },
-      })
-      set_border_color(colors.white)
+      icon, color = yabai.grid, colors.orange
     end
+
+    yabai_item:set({
+      icon = { string = icon, color = color },
+      label = label and { drawing = true, string = label } or { drawing = false },
+    })
+    set_border_color(color == colors.orange and colors.white or color)
   end)
 end
 
@@ -111,6 +133,7 @@ end)
 yabai_item:subscribe("window_focus", update_window_state)
 yabai_item:subscribe("front_app_switched", update_window_state)
 yabai_item:subscribe("space_change", update_window_state)
+yabai_item:subscribe("space_windows_change", update_window_state)
 yabai_item:subscribe("windows_on_spaces", update_windows_on_spaces)
 
 -- Initial state

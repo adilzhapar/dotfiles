@@ -35,7 +35,14 @@ yabai -m rule --add app="^(CleanShot.*)$" sticky=on sub-layer=above manage=off
 
 yabai -m config layout bsp
 yabai -m rule --apply
-yabai -m signal --add event=window_focused action="sketchybar --trigger window_focus"
+# Re-focusing the already-focused window promotes it to the top of its stack.
+# AltTab / Cmd-Tab AXRaises a window, but in a `stack` space yabai owns the
+# z-order and keeps the stack's top window in front -- so the window took focus
+# invisibly.  This signal raises it for real.  `;` (not `&&`) so sketchybar still
+# updates when the re-focus is a no-op.
+yabai -m signal --add event=window_focused   action="yabai -m window \$YABAI_WINDOW_ID --focus 2>/dev/null; sketchybar --trigger window_focus"
+yabai -m signal --add event=window_created   action="sketchybar --trigger window_focus"
+yabai -m signal --add event=window_destroyed action="sketchybar --trigger window_focus"
 
 borders active_color=0xffc6a0f6 inactive_color=0xff6e738d width=3.0 &
 
