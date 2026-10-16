@@ -6,7 +6,7 @@ local paddings = settings.paddings
 sbar.default({
   updates = "when_shown",
   icon = {
-    font = { family = settings.font.text, style = settings.font.style_map["Bold"], size = 14 },
+    font = { family = settings.font.icons, style = "Bold", size = 14 },
     color = colors.icon_color,
     highlight_color = colors.highlight,
     padding_left = 0,

@@ -3,6 +3,7 @@
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 export PATH="/opt/homebrew/bin:$PATH"
 
+[[ -f ~/.secrets.zsh ]] && source ~/.secrets.zsh
 
 # Oh My Zsh configuration
 export ZSH="$HOME/.oh-my-zsh"
@@ -10,7 +11,7 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-you-should-use zsh-
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
+export JAVA_HOME=$(/usr/libexec/java_home -v 22)
 export ANDROID_HOME=$HOME/Library/Android/sdk
 
 # Path modifications
@@ -54,3 +55,4 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # export PATH="/opt/homebrew/Cellar/postgresql@16/16.10/bin:$PATH"
 export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
+eval "$(mise activate zsh)"
