@@ -33,7 +33,7 @@ for i = 1, 10, 1 do
       drawing = false,
       color = colors.transparent,
       border_width = 0,
-      height = 26,
+      height = 28,
     },
     popup = { background = { border_width = 5, border_color = colors.black } }
   })
@@ -91,7 +91,7 @@ sbar.add("bracket", "left.side", space_names, {
     corner_radius = 7,
     border_width = 1,
     border_color = colors.black,
-    height = 28,
+    height = 30,
     padding_left = 6,
     padding_right = 3,
   },
