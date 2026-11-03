@@ -45,6 +45,6 @@ yabai -m signal --add label=sb_focus event=window_focused action="sketchybar --t
 yabai -m signal --add event=window_created   action="sketchybar --trigger window_focus"
 yabai -m signal --add event=window_destroyed action="sketchybar --trigger window_focus"
 
-borders active_color=0xffc6a0f6 inactive_color=0xff6e738d width=3.0 &
+borders active_color=0xfff5a97f inactive_color=0xff6e738d width=4.0 &
 
 echo "yabai configuration loaded.."
