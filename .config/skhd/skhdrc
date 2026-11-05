@@ -94,3 +94,11 @@ shift + lalt - space : sketchybar --bar hidden=toggle
 shift + ctrl - s : ~/.config/yabai/layout.sh stack
 shift + ctrl - b : ~/.config/yabai/layout.sh bsp
 shift + ctrl - f : ~/.config/yabai/layout.sh float
+
+# Cycle windows in the current space only
+# (layout-agnostic: works in bsp, stack and float spaces; `--focus next` fails in stack layout)
+alt - tab : yabai -m config mouse_follows_focus off; yabai -m window --focus "$(yabai -m query --windows --space | jq -r '[.[] | select(.["is-minimized"] == false and .["is-hidden"] == false and .subrole == "AXStandardWindow")] | sort_by(.id) | (map(.["has-focus"]) | index(true)) as $i | .[((($i // -1) + 1) % length)].id')"; yabai -m config mouse_follows_focus on
+
+# Disable macOS Cmd+Tab app switcher (remove these lines to restore)
+cmd - tab : true
+cmd + shift - tab : true
