@@ -41,6 +41,15 @@ local DRACULA = {
 
 local palette = (settings.theme == "dracula") and DRACULA or CATPPUCCIN
 
+-- Scene override: written by ~/.config/scene-scripts/apps/sketchybar.sh
+local scene_ok, scene = pcall(dofile, os.getenv("HOME") .. "/.config/sketchybar/scene_palette.lua")
+if not (scene_ok and type(scene) == "table") then scene = nil end
+if scene then
+  local merged = {}
+  for k, v in pairs(palette) do merged[k] = scene[k] or v end
+  palette = merged
+end
+
 local colors = {
   -- Base palette (from active theme)
   blue = palette.blue,
@@ -80,6 +89,11 @@ local colors = {
 if settings.theme == "dracula" then
   colors.bg1 = 0xff44475a
   colors.bg2 = 0xff6272a4
+end
+
+if scene then
+  colors.bg1 = scene.bg1 or colors.bg1
+  colors.bg2 = scene.bg2 or colors.bg2
 end
 
 function colors.with_alpha(color, alpha)

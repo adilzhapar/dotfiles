@@ -39,6 +39,15 @@ sid=$(yabai -m query --displays --display "$(current_display)" \
 [ -n "$sid" ] || exit 0
 
 case $action in
-    focus) yabai -m space --focus "$sid" ;;
+    # macOS 27 broke yabai's scripting addition (space --focus lands on space 1),
+    # so use the native "Switch to Desktop N" shortcuts, bound to hyper + 1..7
+    # in System Settings > Keyboard > Shortcuts > Mission Control.
+    # Desktop numbers are global across displays and match yabai space indices.
+    focus)
+        if [ "$sid" -le 7 ]; then
+            skhd -k "hyper - $sid"
+        else
+            yabai -m space --focus "$sid"
+        fi ;;
     move)  yabai -m window --space "$sid" ;;
 esac
