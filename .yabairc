@@ -7,7 +7,7 @@ yabai -m config external_bar               all:40:0       \
                 window_zoom_persist        off            \
                 window_placement           second_child   \
                 window_shadow              float          \
-                window_animation_duration  0.5            \
+                window_animation_duration  0.0            \
                 window_animation_easing    ease_out_quint \
                 insert_feedback_color      0xff9dd274     \
                 split_ratio                0.50           \
@@ -42,9 +42,7 @@ yabai -m rule --apply
 # on every hop, so it visibly ping-pongs between displays.
 # Stack navigation is shift+ctrl - n/p instead.
 yabai -m signal --add label=sb_focus event=window_focused action="sketchybar --trigger window_focus"
-yabai -m signal --add event=window_created   action="sketchybar --trigger window_focus"
-yabai -m signal --add event=window_destroyed action="sketchybar --trigger window_focus"
-
-borders active_color=0xfff5a97f inactive_color=0xff6e738d width=4.0 &
+# window_created/destroyed are covered by sketchybar's native space_windows_change.
+# Borders (JankyBorders) removed: redrew an outline on every focus change.
 
 echo "yabai configuration loaded.."

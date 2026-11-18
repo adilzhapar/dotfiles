@@ -1,11 +1,9 @@
 local colors = require("colors")
 local icons = require("icons")
-local app_icons = require("helpers.app_icons")
 
 local yabai = icons.yabai
--- Create custom events for yabai triggers (from yabairc/skhd)
+-- Custom event fired by yabairc (window_focused signal), skhd and yabai/*.sh
 sbar.add("event", "window_focus")
-sbar.add("event", "windows_on_spaces")
 
 local yabai_item = sbar.add("item", "yabai", {
   position = "left",
@@ -25,14 +23,6 @@ local yabai_item = sbar.add("item", "yabai", {
   padding_left = 1,
   padding_right = 2,
 })
-
-local function set_border_color(color_hex)
-  local r = math.floor(color_hex / 65536) % 256
-  local g = math.floor(color_hex / 256) % 256
-  local b = color_hex % 256
-  local hex = string.format("#%02x%02x%02x", r, g, b)
-  sbar.exec("yabai -m config active_window_border_color " .. hex .. " 2>/dev/null &")
-end
 
 -- One shell round-trip -> one `set`.  The previous version issued a *second*
 -- nested sbar.exec for the stack branch while the other branches set the icon
@@ -68,8 +58,13 @@ jq -rn --argjson s "$sp" --argjson ws "$ws" '
   | "\($layout)|\($st)|\($idx)|\($cnt)"'
 ]==]
 
-local function update_window_state()
+-- Debounce: one Cmd-Tab fires window_focus + space_change/space_windows_change
+-- back to back. Coalesce a burst into a single query and drop stale results.
+local generation = 0
+
+local function query_window_state(gen)
   sbar.exec(STATE_QUERY, function(result)
+    if gen ~= generation then return end
     if not result then return end
     result = result:gsub("^%s*(.-)%s*$", "%1")
     if result == "" then return end
@@ -100,28 +95,14 @@ local function update_window_state()
       icon = { string = icon, color = color },
       label = label and { drawing = true, string = label } or { drawing = false },
     })
-    set_border_color(color == colors.orange and colors.white or color)
   end)
 end
 
-local function update_windows_on_spaces()
-  sbar.exec("yabai -m query --displays 2>/dev/null | jq -r '.[].spaces | @sh'", function(display_spaces)
-    if not display_spaces or display_spaces == "" then return end
-    for line in display_spaces:gmatch("[^\r\n]+") do
-      for space in line:gmatch("%S+") do
-        sbar.exec("yabai -m query --windows --space " .. space .. " 2>/dev/null | jq -r '.[].app'", function(apps_result)
-          local icon_strip = " "
-          if apps_result and apps_result ~= "" then
-            for app in apps_result:gmatch("[^\r\n]+") do
-              app = app:gsub("^%s*(.-)%s*$", "%1")
-              local icon = app_icons[app] or app_icons["Default"] or ":default:"
-              icon_strip = icon_strip .. " " .. icon
-            end
-          end
-          sbar.set("space." .. space, { label = { string = icon_strip, drawing = true } })
-        end)
-      end
-    end
+local function update_window_state()
+  generation = generation + 1
+  local gen = generation
+  sbar.delay(0.05, function()
+    if gen == generation then query_window_state(gen) end
   end)
 end
 
@@ -131,10 +112,8 @@ yabai_item:subscribe("mouse.clicked", function()
 end)
 
 yabai_item:subscribe("window_focus", update_window_state)
-yabai_item:subscribe("front_app_switched", update_window_state)
 yabai_item:subscribe("space_change", update_window_state)
 yabai_item:subscribe("space_windows_change", update_window_state)
-yabai_item:subscribe("windows_on_spaces", update_windows_on_spaces)
 
 -- Initial state
 sbar.delay(0.2, update_window_state)
